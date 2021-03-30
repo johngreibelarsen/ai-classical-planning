@@ -58,8 +58,7 @@ class ActionLayer(BaseActionLayer):
         layers.BaseLayer.parent_layer
         """
         # TODO: implement this function
-        self.parent_layer.is_mutex(actionA, actionB)
-
+        return any(self.parent_layer.is_mutex(itemA,itemB) for itemA in actionA.preconditions for itemB in actionB.preconditions)
 
 class LiteralLayer(BaseLiteralLayer):
 
