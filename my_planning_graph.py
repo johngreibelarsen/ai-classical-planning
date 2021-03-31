@@ -69,8 +69,6 @@ class LiteralLayer(BaseLiteralLayer):
         layers.BaseLayer.parent_layer
         """
         # TODO: implement this function
-        if literalA == ~literalB: return True
-
         inconsistent_support_AB = [self.parent_layer.is_mutex(actionA, actionB) for actionA in self.parents[literalA] for actionB in self.parents[literalB]]
         inconsistent_support_BA = [self.parent_layer.is_mutex(actionB, actionA) for actionA in self.parents[literalA] for actionB in self.parents[literalB]]
         return all(inconsistent_support_AB + inconsistent_support_BA)
@@ -142,7 +140,18 @@ class PlanningGraph:
         Russell-Norvig 10.3.1 (3rd Edition)
         """
         # TODO: implement this function
-        raise NotImplementedError
+        self.fill()
+
+        sum_counter = 0
+        for g in self.goal:
+            layer_counter = 0
+            for ll in self.literal_layers:
+                if g in ll:
+                    sum_counter += layer_counter
+                    break
+                layer_counter += 1
+        return sum_counter
+
 
     def h_maxlevel(self):
         """ Calculate the max level heuristic for the planning graph
@@ -172,7 +181,17 @@ class PlanningGraph:
         WARNING: you should expect long runtimes using this heuristic with A*
         """
         # TODO: implement maxlevel heuristic
-        raise NotImplementedError
+        self.fill()
+
+        max_counter = 0
+        for g in self.goal:
+            layer_counter = 0
+            for ll in self.literal_layers:
+                if g in ll:
+                    max_counter = max(max_counter, layer_counter)
+                    break
+                layer_counter += 1
+        return max_counter
 
     def h_setlevel(self):
         """ Calculate the set level heuristic for the planning graph
