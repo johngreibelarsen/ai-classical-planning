@@ -20,10 +20,7 @@ class ActionLayer(BaseActionLayer):
         layers.ActionNode
         """
         # TODO: implement this function
-        for effectA in actionA.effects:
-            if ~effectA in actionB.effects:
-                return True
-        return False
+        return any(~effectA in actionB.effects for effectA in actionA.effects)
 
     def _interference(self, actionA, actionB):
         """ Return True if the effects of either action negate the preconditions of the other 
@@ -37,13 +34,9 @@ class ActionLayer(BaseActionLayer):
         layers.ActionNode
         """
         # TODO: implement this function
-        for effectA in actionA.effects:
-            if ~effectA in actionB.preconditions:
-                return True
-        for effectB in actionB.effects:
-            if ~effectB in actionA.preconditions:
-                return True
-        return False
+        interference_AB = [~effectA in actionB.preconditions for effectA in actionA.effects]
+        interference_BA = [~effectB in actionA.preconditions for effectB in actionB.effects]
+        return any(interference_AB + interference_BA)
 
     def _competing_needs(self, actionA, actionB):
         """ Return True if any preconditions of the two actions are pairwise mutex in the parent layer
@@ -58,7 +51,9 @@ class ActionLayer(BaseActionLayer):
         layers.BaseLayer.parent_layer
         """
         # TODO: implement this function
-        return any(self.parent_layer.is_mutex(itemA,itemB) for itemA in actionA.preconditions for itemB in actionB.preconditions)
+        competing_needs_AB = [self.parent_layer.is_mutex(preconA, preconB) for preconA in actionA.preconditions for preconB in actionB.preconditions]
+        competing_needs_BA = [self.parent_layer.is_mutex(preconB, preconA) for preconA in actionA.preconditions for preconB in actionB.preconditions]
+        return any(competing_needs_AB + competing_needs_BA)
 
 class LiteralLayer(BaseLiteralLayer):
 
