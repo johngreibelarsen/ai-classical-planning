@@ -69,7 +69,11 @@ class LiteralLayer(BaseLiteralLayer):
         layers.BaseLayer.parent_layer
         """
         # TODO: implement this function
-        return False
+        if literalA == ~literalB: return True
+
+        inconsistent_support_AB = [self.parent_layer.is_mutex(actionA, actionB) for actionA in self.parents[literalA] for actionB in self.parents[literalB]]
+        inconsistent_support_BA = [self.parent_layer.is_mutex(actionB, actionA) for actionA in self.parents[literalA] for actionB in self.parents[literalB]]
+        return all(inconsistent_support_AB + inconsistent_support_BA)
 
     def _negation(self, literalA, literalB):
         """ Return True if two literals are negations of each other """
