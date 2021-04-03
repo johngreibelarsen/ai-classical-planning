@@ -222,7 +222,7 @@ class PlanningGraph:
         for ll in self.literal_layers:
             if self.goal.issubset(ll):
                 if not any(ll.is_mutex(goalA, goalB) for goalA in self.goal for goalB in self.goal):
-                    break
+                    break   #set level heuristic found
             layer_counter += 1
         return layer_counter
 
