@@ -25,6 +25,7 @@ one by entering multiple selections separated by spaces.
 """
 
 INVALID_ARG_MSG = """
+
 You must either use the -m flag to run in manual mode, or use both the -p and
 -s flags to specify a list of problems and search algorithms to run. Valid
 choices for each include:
@@ -70,6 +71,8 @@ def main(p_choices, s_choices):
     problems = [PROBLEMS[i-1] for i in map(int, p_choices)]
     searches = [SEARCHES[i-1] for i in map(int, s_choices)]
 
+    result = None
+    print(f"Tup result {result}")
     for pname, problem_fn in problems:
         for sname, search_fn, heuristic in searches:
             hstring = heuristic if not heuristic else " with {}".format(heuristic)
@@ -77,8 +80,41 @@ def main(p_choices, s_choices):
 
             problem_instance = problem_fn()
             heuristic_fn = None if not heuristic else getattr(problem_instance, heuristic)
-            run_search(problem_instance, search_fn, heuristic_fn)
+            result = run_search(problem_instance, search_fn, heuristic_fn)
+            print(f"Tup result {result}")
+    return result
 
+import run_search as rs
+import _utils as utils
+from timeit import default_timer as timer
+
+from dataclasses import make_dataclass
+Experiment = make_dataclass("Experiment", [("Problem_Name", str), ("Search_Algo", str), ("Heuristic", str),
+                                           ("Actions", int), ("Expansions", int), ("Goal_Tests", int), ("New_Nodes", int),
+                                           ("Plan_Length", int), ("Elapsed_Time", float)])
+
+def main_new(p_choices, s_choices):
+    problems = [rs.PROBLEMS[i-1] for i in map(int, p_choices)]
+    searches = [rs.SEARCHES[i-1] for i in map(int, s_choices)]
+
+    results = [] # list of experiments
+    for pname, problem_fn in problems:
+        for sname, search_fn, heuristic in searches:
+            problem_instance = problem_fn()
+            heuristic_fn = None if not heuristic else getattr(problem_instance, heuristic)
+            result = run_search_new(problem_instance, search_fn, heuristic_fn)
+            results.append(Experiment(pname, sname, heuristic, len(result[0].actions_list), result[0].succs, result[0].goal_tests, result[0].states, result[1], result[2]))
+    return results
+
+def run_search_new(problem, search_function, parameter=None):
+    ip = utils.PrintableProblem(problem)
+    start = timer()
+    if parameter is not None:
+        node = search_function(ip, parameter)
+    else:
+        node = search_function(ip)
+    end = timer()
+    return (ip, len(node.solution()), (end - start))
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description="Solve air cargo planning problems " + 
@@ -95,7 +131,13 @@ if __name__=="__main__":
     if args.manual:
         manual()
     elif args.problems and args.searches:
-        main(list(sorted(set(args.problems))), list(sorted(set((args.searches)))))
+        #problem, plan_length, elapsed_time = main_new(list(sorted(set(args.problems))), list(sorted(set((args.searches)))))
+        results = main_new(list(sorted(set(args.problems))), list(sorted(set((args.searches)))))
+        #print("########## Actions   Expansions   Goal Tests   New Nodes")
+        #print(f"Problem: {problem}")
+        #print(f"Plan length: {plan_length}")
+        #print(f"Elapsed time: {elapsed_time}")
+        print(results)
     else:
         print()
         parser.print_help()
